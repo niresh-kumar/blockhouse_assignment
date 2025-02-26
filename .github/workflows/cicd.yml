@@ -38,7 +38,7 @@ jobs:
 
           # SSH and deploy with Docker Compose
           ssh -o StrictHostKeyChecking=no -i bl_house.pem $EC2_USER@$EC2_HOST << 'EOF'
-            cd /home/$EC2_USER/blockhouse_assignments
+            cd /$EC2_USER/blockhouse_assignments
             docker-compose down
             docker-compose up --build -d
           EOF

@@ -60,7 +60,7 @@ jobs:
         run: |
           # Debug secret values
           echo "EC2_HOST value: '$EC2_HOST'"
-          echo "EC2_USER value: '$EC2_USER'"
+          echo "EC2_USER value: ${#EC2_USER}"
           echo "EC2_SSH_KEY length: ${#EC2_SSH_KEY}"
           if [ -z "$EC2_HOST" ] || [ -z "$EC2_USER" ] || [ -z "$EC2_SSH_KEY" ]; then
             echo "Error: One or more secrets are empty!"

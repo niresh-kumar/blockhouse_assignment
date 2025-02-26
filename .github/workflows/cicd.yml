@@ -28,16 +28,14 @@ jobs:
           echo "$EC2_SSH_KEY" > bl_house.pem
           chmod 600 bl_house.pem
 
-          ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
-          rm -rf /home/$EC2_USER/blockhouse_assignments
-          mkdir -p /home/$EC2_USER/blockhouse_assignments
+          # Copy entire project to EC2
+          scp -o StrictHostKeyChecking=no -i bl_house.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignments/
+
+          # SSH and deploy with Docker Compose
+          ssh -o StrictHostKeyChecking=no -i bl_house.pem $EC2_USER@$EC2_HOST << 'EOF'
+            cd /home/$EC2_USER/blockhouse_assignments
+            docker-compose down
+            docker-compose up --build -d
           EOF
-          scp -o StrictHostKeyChecking=no -i ssh_key.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignments/
-          ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
-          cd /home/$EC2_USER/blockhouse_assignments
-          docker-compose down
-          docker-compose up --build -d
-          EOF
-          
 
           rm bl_house.pem

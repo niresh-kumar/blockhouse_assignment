@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, WebSocket
+from fastapi import FastAPI, Depends, WebSocket
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List
@@ -6,15 +6,27 @@ import database
 import models
 from database import get_db
 
-#test comment
-app = FastAPI()
+app = FastAPI(
+    title="Trading API",
+    description="A simple trading API with order management and real-time updates.",
+    version="1.0.0"
+)
 
-# Pydantic model for request validation
 class OrderCreate(BaseModel):
     symbol: str
     price: float
     quantity: int
     order_type: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "symbol": "AAPL",
+                "price": 150.5,
+                "quantity": 10,
+                "order_type": "buy"
+            }
+        }
 
 # Initialize database tables
 models.Base.metadata.create_all(bind=database.engine)
@@ -22,8 +34,8 @@ models.Base.metadata.create_all(bind=database.engine)
 # Store WebSocket connections for real-time updates
 websocket_clients = []
 
-# POST /orders - Create a new order
-@app.post("/orders", response_model=OrderCreate)
+
+@app.post("/orders", response_model=OrderCreate, summary="Create a new order")
 async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     db_order = models.Order(
         symbol=order.symbol,
@@ -48,8 +60,8 @@ async def create_order(order: OrderCreate, db: Session = Depends(get_db)):
 
     return order
 
-# GET /orders - Retrieve all orders
-@app.get("/orders", response_model=List[OrderCreate])
+
+@app.get("/orders", response_model=List[OrderCreate], summary="Get all orders")
 async def get_orders(db: Session = Depends(get_db)):
     orders = db.query(models.Order).all()
     return [{"symbol": o.symbol, "price": o.price, "quantity": o.quantity, "order_type": o.order_type} for o in orders]
@@ -66,5 +78,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception:
         websocket_clients.remove(websocket)
         await websocket.close()
+
+
 
 # Run with: uvicorn main:app --reload

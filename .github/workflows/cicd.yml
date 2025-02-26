@@ -11,7 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'  # Only run on PRs
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +27,9 @@ jobs:
 
       - name: Run tests with mock DB
         run: |
+          echo "Running tests for PR to main"
           pytest tests/
+
   deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -46,12 +47,11 @@ jobs:
       - name: Create stable tarball
         run: |
           mkdir -p temp-deploy
-          rsync -a --exclude='temp-deploy' --exclude='.git' ./ temp-deploy/
+          find . -maxdepth 1 -not -name 'temp-deploy' -not -name '.' -not -name '..' -exec cp -r {} temp-deploy/ \;
           cd temp-deploy
-          tar -czf ../app.tar.gz .
+          tar --exclude='.git' -czf ../app.tar.gz .
           cd ..
           rm -rf temp-deploy
-      
 
       - name: Deploy to EC2 via SSH
         env:
@@ -59,23 +59,24 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          echo "EC2_HOST: $EC2_HOST"
+          echo "EC2_HOST value: '$EC2_HOST'"
+          echo "EC2_USER value: '$EC2_USER'"
+          echo "EC2_SSH_KEY length: ${#EC2_SSH_KEY}"
           if [ -z "$EC2_HOST" ] || [ -z "$EC2_USER" ] || [ -z "$EC2_SSH_KEY" ]; then
-            echo "One or more secrets are empty!"
+            echo "Error: One or more secrets are empty!"
             exit 1
           fi
           echo "$EC2_SSH_KEY" > ssh_key.pem
           chmod 600 ssh_key.pem
-          echo $EC2_HOST
-          scp -o StrictHostKeyChecking=no -i ssh_key.pem app.tar.gz $EC2_USER@$EC2_HOST:/home/ubuntu/
-          ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            mkdir -p blockhouse_assignments
-            cd blockhouse_assignments/
-            tar -xzf /home/ubuntu/app.tar.gz --overwrite
-            rm /home/ubuntu/app.tar.gz
+          scp -v -o StrictHostKeyChecking=no -i ssh_key.pem app.tar.gz ubuntu@$EC2_HOST:/home/ubuntu/app.tar.gz
+          ssh -v -o StrictHostKeyChecking=no -i ssh_key.pem ubuntu@$EC2_HOST << EOF
+            echo "Remote EC2_USER: ubuntu"
+            ls -la /home/ubuntu/
+            mkdir -p /home/ubuntu/blockhouse_assignments
+            cd /home/ubuntu/blockhouse_assignments
+            tar -xzf /home/ubuntu/app.tar.gz --overwrite || echo "Tar failed: \$?"
+            rm -f /home/ubuntu/app.tar.gz
             docker-compose down
             docker-compose up --build -d
           EOF
           rm ssh_key.pem
-
- 

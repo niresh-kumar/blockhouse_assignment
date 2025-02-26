@@ -71,7 +71,7 @@ jobs:
             mkdir -p blockhouse_assignments
             cd blockhouse_assignments/
             tar -xzf /home/$EC2_USER/app.tar.gz --overwrite
-            rm /home/$EC2_USER/app.tar.gz
+            rm /home/ubuntu/app.tar.gz
             docker-compose down
             docker-compose up --build -d
           EOF

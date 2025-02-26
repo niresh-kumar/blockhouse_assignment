@@ -1,10 +1,13 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # Add root to path
+
+from main import app  # Now import works reliably
 from fastapi.testclient import TestClient
-from main import app
 from unittest.mock import patch
 
 client = TestClient(app)
 
-# Mock the get_db dependency to avoid real DB calls
 def mock_get_db():
     class MockSession:
         def query(self, *args):
@@ -19,11 +22,10 @@ def mock_get_db():
             pass
     yield MockSession()
 
-# Override the dependency during tests
-app.dependency_overrides[ lambda: next(get_db()) ] = mock_get_db
+app.dependency_overrides[lambda: next(get_db())] = mock_get_db
 
 def test_get_orders():
-    with patch('main.get_db', mock_get_db):  # Mock during endpoint execution
+    with patch('main.get_db', mock_get_db):
         response = client.get("/orders")
         assert response.status_code == 200
         assert isinstance(response.json(), list)

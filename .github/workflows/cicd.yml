@@ -25,17 +25,31 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          echo "$EC2_SSH_KEY" > bl_house.pem
-          chmod 600 bl_house.pem
+          echo "EC2_HOST: $EC2_HOST"  # Debug
+          echo "$EC2_SSH_KEY" > ssh_key.pem
+          chmod 600 ssh_key.pem
 
-          # Copy entire project to EC2
-          scp -o StrictHostKeyChecking=no -i bl_house.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignment
+          # Create a tarball excluding .git
+          tar --exclude='.git' -czf app.tar.gz .
 
-          # SSH and deploy with Docker Compose
-          ssh -o StrictHostKeyChecking=no -i bl_house.pem $EC2_USER@$EC2_HOST << 'EOF'
-            cd /home/$EC2_USER/blockhouse_assignment
+          # Copy tarball to EC2
+          scp -o StrictHostKeyChecking=no -i ssh_key.pem app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+
+          # SSH and deploy
+          ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+            # Ensure directory exists
+            mkdir -p /home/$EC2_USER/blockhouse_assignments
+            cd /home/$EC2_USER/blockhouse_assignments
+
+            # Extract tarball, overwriting existing files
+            tar -xzf /home/$EC2_USER/app.tar.gz --overwrite
+
+            # Clean up
+            rm /home/$EC2_USER/app.tar.gz
+
+            # Deploy with Docker Compose
             docker-compose down
             docker-compose up --build -d
           EOF
 
-          rm bl_house.pem
+          rm ssh_key.pem

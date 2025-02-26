@@ -28,6 +28,11 @@ jobs:
           echo "$EC2_SSH_KEY" > bl_house.pem
           chmod 600 bl_house.pem
 
+          #delete pre existing directory and create new directory
+          ssh -o StrictHostKeyChecking=no -i bl_house.pem $EC2_USER@$EC2_HOST << 'EOF'
+          rm -rf blockhouse_assignments
+          mkdir blockhouse_assignments
+          
           # Copy entire project to EC2
           scp -o StrictHostKeyChecking=no -i bl_house.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignments/
 

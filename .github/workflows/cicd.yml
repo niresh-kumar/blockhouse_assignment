@@ -66,12 +66,12 @@ jobs:
           fi
           echo "$EC2_SSH_KEY" > ssh_key.pem
           chmod 600 ssh_key.pem
-          scp -o StrictHostKeyChecking=no -i ssh_key.pem app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
+          scp -o StrictHostKeyChecking=no -i ssh_key.pem app.tar.gz $EC2_USER@$EC2_HOST:$EC2_USER/
           ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
-            mkdir -p /home/$EC2_USER/blockhouse_assignments
-            cd /home/$EC2_USER/blockhouse_assignments
-            tar -xzf /home/$EC2_USER/app.tar.gz --overwrite
-            rm /home/$EC2_USER/app.tar.gz
+            mkdir -p blockhouse_assignments
+            cd blockhouse_assignments/
+            tar -xzf $EC2_USER/app.tar.gz --overwrite
+            rm $EC2_USER/app.tar.gz
             docker-compose down
             docker-compose up --build -d
           EOF

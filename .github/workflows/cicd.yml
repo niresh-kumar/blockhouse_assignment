@@ -29,7 +29,7 @@ jobs:
           chmod 600 bl_house.pem
 
           # Copy entire project to EC2
-          scp -o StrictHostKeyChecking=no -i bl_house.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignments/
+          scp -o StrictHostKeyChecking=no -i bl_house.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignment
 
           # SSH and deploy with Docker Compose
           ssh -o StrictHostKeyChecking=no -i bl_house.pem $EC2_USER@$EC2_HOST << 'EOF'

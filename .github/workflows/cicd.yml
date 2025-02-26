@@ -31,6 +31,7 @@ jobs:
           pytest tests/
   deploy:
     runs-on: ubuntu-latest
+    environment: myenvironment
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout code

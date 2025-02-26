@@ -1,11 +1,16 @@
-#added comment 3
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from main import app
 from fastapi.testclient import TestClient
-from unittest.mock import patch
+from unittest.mock import patch, Mock
+
+# Mock database engine globally to prevent real connections
+with patch('database.create_engine') as mock_create_engine:
+    mock_engine = Mock()
+    mock_create_engine.return_value = mock_engine
+    from main import app  # Import app after mocking
 
 client = TestClient(app)
 

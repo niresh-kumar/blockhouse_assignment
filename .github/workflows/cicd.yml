@@ -70,8 +70,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
             mkdir -p blockhouse_assignments
             cd blockhouse_assignments/
-            tar -xzf /home/ubuntu/app.tar.gz --overwrite
-            rm /home/ubuntu/app.tar.gz
+            tar -xzf /home/$EC2_USER/app.tar.gz --overwrite
+            rm /home/$EC2_USER/app.tar.gz
             docker-compose down
             docker-compose up --build -d
           EOF

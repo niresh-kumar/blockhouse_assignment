@@ -1,9 +1,8 @@
-# not running test for now 3
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))  # Add root to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from main import app  # Now import works reliably
+from main import app
 from fastapi.testclient import TestClient
 from unittest.mock import patch
 
@@ -22,8 +21,6 @@ def mock_get_db():
         def refresh(self, *args):
             pass
     yield MockSession()
-
-app.dependency_overrides[lambda: next(get_db())] = mock_get_db
 
 def test_get_orders():
     with patch('main.get_db', mock_get_db):

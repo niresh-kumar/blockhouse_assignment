@@ -29,10 +29,9 @@ jobs:
       - name: Run tests with mock DB
         run: |
           pytest tests/
-
   deploy:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'  # Only run on push to main
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -43,6 +42,16 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t trade-api:latest .
+
+      - name: Create stable tarball
+        run: |
+          # Copy to a temporary directory to avoid changes during tar
+          mkdir -p temp-deploy
+          cp -r ./* temp-deploy/
+          cd temp-deploy
+          tar --exclude='.git' -czf ../app.tar.gz .
+          cd ..
+          rm -rf temp-deploy
 
       - name: Deploy to EC2 via SSH
         env:
@@ -57,14 +66,7 @@ jobs:
           fi
           echo "$EC2_SSH_KEY" > ssh_key.pem
           chmod 600 ssh_key.pem
-
-          # Create tarball excluding .git
-          tar --exclude='.git' -czf app.tar.gz .
-
-          # Copy to EC2
           scp -o StrictHostKeyChecking=no -i ssh_key.pem app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_USER/
-
-          # SSH and deploy with real PostgreSQL
           ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
             mkdir -p /home/$EC2_USER/blockhouse_assignments
             cd /home/$EC2_USER/blockhouse_assignments
@@ -73,5 +75,6 @@ jobs:
             docker-compose down
             docker-compose up --build -d
           EOF
-
           rm ssh_key.pem
+
+ 

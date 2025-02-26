@@ -45,13 +45,13 @@ jobs:
 
       - name: Create stable tarball
         run: |
-          # Copy to a temporary directory to avoid changes during tar
           mkdir -p temp-deploy
-          cp -r ./* temp-deploy/
+          rsync -a --exclude='temp-deploy' --exclude='.git' ./ temp-deploy/
           cd temp-deploy
-          tar --exclude='.git' -czf ../app.tar.gz .
+          tar -czf ../app.tar.gz .
           cd ..
           rm -rf temp-deploy
+      
 
       - name: Deploy to EC2 via SSH
         env:

@@ -66,6 +66,9 @@ jobs:
           fi
           echo "$EC2_SSH_KEY" > ssh_key.pem
           chmod 600 ssh_key.pem
+          ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+            rm app.tar.gz
+          EOF
           scp -o StrictHostKeyChecking=no -i ssh_key.pem app.tar.gz $EC2_USER@$EC2_HOST:/home/$EC2_User/
           ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
             mkdir -p blockhouse_assignments

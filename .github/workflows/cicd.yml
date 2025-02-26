@@ -30,7 +30,8 @@ jobs:
 
           #delete pre existing directory and create new directory
           ssh -o StrictHostKeyChecking=no -i bl_house.pem $EC2_USER@$EC2_HOST << 'EOF'
-            rm -rf blockhouse_assignments
+            docker-compose down
+            sudo rm -rf blockhouse_assignments
             mkdir blockhouse_assignments
           EOF
           # Copy entire project to EC2

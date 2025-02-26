@@ -26,16 +26,16 @@ jobs:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           echo "$EC2_SSH_KEY" > bl_house.pem
-          chmod 600 ssh_key.pem
+          chmod 600 bl_house.pem
 
           # Copy entire project to EC2
-          scp -o StrictHostKeyChecking=no -i ssh_key.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignments/
+          scp -o StrictHostKeyChecking=no -i bl_house.pem -r . $EC2_USER@$EC2_HOST:/home/$EC2_USER/blockhouse_assignments/
 
           # SSH and deploy with Docker Compose
-          ssh -o StrictHostKeyChecking=no -i ssh_key.pem $EC2_USER@$EC2_HOST << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i bl_house.pem $EC2_USER@$EC2_HOST << 'EOF'
             cd /home/$EC2_USER/blockhouse_assignments
             docker-compose down
             docker-compose up --build -d
           EOF
 
-          rm ssh_key.pem
+          rm bl_house.pem
